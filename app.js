@@ -178,6 +178,13 @@ app.put("/username", auth, async (req, res) => {
     });
   }
 
+  if (username == "180iq_admin") {
+    return res.status(400).send({
+      reason: "INVALID_USERNAME",
+      message: "This username is not available",
+    });
+  }
+
   const oldUser = await User.findOne({ username });
 
   if (oldUser) {
