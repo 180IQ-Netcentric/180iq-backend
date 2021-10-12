@@ -8,18 +8,18 @@ const verifyToken = (req, res, next) => {
 
   if (!token) {
     return res.status(403).send({
-        reason: "TOKEN_IS_REQUIRED",
-        message: "A token is required for authentication",
-      });
+      reason: "TOKEN_IS_REQUIRED",
+      message: "A token is required for authentication",
+    });
   }
   try {
     const decoded = jwt.verify(token, config.TOKEN_KEY);
     req.user = decoded;
   } catch (err) {
     return res.status(401).send({
-        reason: "INVALID_TOKEN",
-        message: "Invalid Token",
-      });
+      reason: "INVALID_TOKEN",
+      message: "Invalid Token",
+    });
   }
   return next();
 };

@@ -13,7 +13,7 @@ app.use(express.json());
 
 module.exports = app;
 
-// importing user context
+// Importing user context
 const User = require("./model/user");
 
 // Register
@@ -56,12 +56,10 @@ app.post("/register", async (req, res) => {
     });
 
     // Create token
-    const token = jwt.sign(
-      { user_id: user._id, username },
-      process.env.TOKEN_KEY,
-      {
-        expiresIn: "7d",
-      }
+    const token = jwt.sign({ user_id: user._id, username },
+      process.env.TOKEN_KEY, {
+      expiresIn: "7d",
+    }
     );
 
     // return new user
@@ -98,12 +96,10 @@ app.post("/login", async (req, res) => {
 
     if (user && (await bcrypt.compare(password, user.password))) {
       // Create token
-      const token = jwt.sign(
-        { user_id: user._id, username },
-        process.env.TOKEN_KEY,
-        {
-          expiresIn: "7d",
-        }
+      const token = jwt.sign({ user_id: user._id, username },
+        process.env.TOKEN_KEY, {
+        expiresIn: "7d",
+      }
       );
 
       // user
@@ -125,15 +121,15 @@ app.post("/login", async (req, res) => {
   // Our register logic ends here
 });
 
-//scoreboard
+// Scoreboard
 app.get("/scoreboard", auth, async (req, res) => {
-  const users = await User.find({}, { username: 1, win: 1, lose: 1, score: 1, _id: 0 }).sort( { "score": -1, "_id": 1 } ) ;
+  const users = await User.find({}, { username: 1, win: 1, lose: 1, score: 1, _id: 0 }).sort({ "score": -1, "_id": 1 });
   return res.status(200).json(users);
 });
 
-//win
+// Change user name
 app.put("/username", auth, async (req, res) => {
-  const {username} = req.body
+  const { username } = req.body
 
   if (!username) {
     return res.status(400).send({
@@ -151,7 +147,7 @@ app.put("/username", auth, async (req, res) => {
     });
   }
 
-  const user = await User.findOneAndUpdate({ "_id": req.user.user_id },{ $set: { "username": username} })
+  const user = await User.findOneAndUpdate({ "_id": req.user.user_id }, { $set: { "username": username } })
   if (!(user)) {
     return res.status(404).send({
       reason: "NOT_FOUND",
@@ -161,10 +157,10 @@ app.put("/username", auth, async (req, res) => {
   return res.status(200).json();
 });
 
-//win
+// Update win score
 app.put("/win", auth, async (req, res) => {
 
-  const user = await User.findOneAndUpdate({ "_id": req.user.user_id },{ $inc: { "win": 1, "score": 1 } })
+  const user = await User.findOneAndUpdate({ "_id": req.user.user_id }, { $inc: { "win": 1, "score": 1 } })
   if (!(user)) {
     return res.status(404).send({
       reason: "NOT_FOUND",
@@ -174,10 +170,10 @@ app.put("/win", auth, async (req, res) => {
   return res.status(200).json();
 });
 
-//win
+// Update lose score
 app.put("/lose", auth, async (req, res) => {
 
-  const user = await User.findOneAndUpdate({ "_id": req.user.user_id },{ $inc: { "lose": 1, "score": -1 } })
+  const user = await User.findOneAndUpdate({ "_id": req.user.user_id }, { $inc: { "lose": 1, "score": -1 } })
   if (!(user)) {
     return res.status(404).send({
       reason: "NOT_FOUND",
