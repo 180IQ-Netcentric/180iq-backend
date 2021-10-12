@@ -32,6 +32,13 @@ app.post("/register", async (req, res) => {
       });
     }
 
+    if (username == "180iq_admin") {
+      return res.status(400).send({
+        reason: "INVALID_USERNAME",
+        message: "This username is not available",
+      });
+    }
+
     // check if user already exist
     // Validate if user exist in our database
     const oldUser = await User.findOne({ username });
@@ -56,7 +63,7 @@ app.post("/register", async (req, res) => {
     });
 
     // Create token
-    const token = jwt.sign({ user_id: user._id},
+    const token = jwt.sign({ user_id: user._id, role: "User" },
       process.env.TOKEN_KEY, {
       expiresIn: "7d",
     }
@@ -69,6 +76,7 @@ app.post("/register", async (req, res) => {
       lose: user.lose,
       score: user.score,
       jwt: token,
+      isUser: true
     });
   } catch (err) {
     console.log(err);
@@ -91,12 +99,25 @@ app.post("/login", async (req, res) => {
         message: "All input is required",
       });
     }
+
+    if ((username == "180iq_admin") && (password == "netcentric_180_iq")) {
+      const token = jwt.sign({ role: "Admin" },
+        process.env.TOKEN_KEY, {
+        expiresIn: "7d",
+      }
+      );
+      return res.status(200).json({
+        jwt: token,
+        isUser: false
+      })
+    }
+
     // Validate if user exist in our database
     const user = await User.findOne({ username });
 
     if (user && (await bcrypt.compare(password, user.password))) {
       // Create token
-      const token = jwt.sign({ user_id: user._id},
+      const token = jwt.sign({ user_id: user._id, role: "User" },
         process.env.TOKEN_KEY, {
         expiresIn: "7d",
       }
@@ -109,6 +130,7 @@ app.post("/login", async (req, res) => {
         lose: user.lose,
         score: user.score,
         jwt: token,
+        isUser: true
       });
     }
     res.status(400).send({
@@ -123,12 +145,28 @@ app.post("/login", async (req, res) => {
 
 // Scoreboard
 app.get("/scoreboard", auth, async (req, res) => {
+
+  if (req.user.role != "User") {
+    res.status(401).send({
+      reason: "Unauthorized",
+      message: "Only user can use this api",
+    });
+  }
+
   const users = await User.find({}, { username: 1, win: 1, lose: 1, score: 1, _id: 0 }).sort({ "score": -1, "_id": 1 });
   return res.status(200).json(users);
 });
 
 // Change user name
 app.put("/username", auth, async (req, res) => {
+
+  if (req.user.role != "User") {
+    res.status(401).send({
+      reason: "Unauthorized",
+      message: "Only user can use this api",
+    });
+  }
+
   const { username } = req.body
 
   if (!username) {
@@ -160,6 +198,13 @@ app.put("/username", auth, async (req, res) => {
 // Update win score
 app.put("/win", auth, async (req, res) => {
 
+  if (req.user.role != "User") {
+    res.status(401).send({
+      reason: "Unauthorized",
+      message: "Only user can use this api",
+    });
+  }
+
   const user = await User.findOneAndUpdate({ "_id": req.user.user_id }, { $inc: { "win": 1, "score": 1 } })
   if (!(user)) {
     return res.status(404).send({
@@ -172,6 +217,13 @@ app.put("/win", auth, async (req, res) => {
 
 // Update lose score
 app.put("/lose", auth, async (req, res) => {
+
+  if (req.user.role != "User") {
+    res.status(401).send({
+      reason: "Unauthorized",
+      message: "Only user can use this api",
+    });
+  }
 
   const user = await User.findOneAndUpdate({ "_id": req.user.user_id }, { $inc: { "lose": 1, "score": -1 } })
   if (!(user)) {
