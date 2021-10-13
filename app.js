@@ -159,6 +159,32 @@ app.get("/scoreboard", auth, async (req, res) => {
   return res.status(200).json(users);
 });
 
+// User info
+app.get("/userinfo", auth, async (req, res) => {
+
+  if (req.user.role != "User") {
+    res.status(401).send({
+      reason: "Unauthorized",
+      message: "Only user can use this api",
+    });
+  }
+
+  const user = await User.findOne({ "_id": req.user.user_id })
+  if (!(user)) {
+    return res.status(404).send({
+      reason: "NOT_FOUND",
+      message: "This object id is no longer exist.",
+    });
+  }
+
+  return res.status(200).json({
+    username: user.username,
+    win: user.win,
+    lose: user.lose,
+    score: user.score,
+  });
+})
+
 // Change user name
 app.put("/username", auth, async (req, res) => {
 
