@@ -11,6 +11,18 @@ const auth = require("./middleware/auth");
 app.use(express.json());
 app.use(cors())
 
+function isPrime(num) {
+  if(!isFinite(num)) return false
+  for(var i = 2; i < num; i++)
+    if(num % i === 0) return false;
+  return num > 1;
+}
+
+function isValid(num,chance){
+  if(chance> 0.67) return isPrime(num) && (num%1===0) && num > 20 && num < 90
+  return num%1===0
+}
+
 // Logic goes here
 
 module.exports = app;
@@ -288,9 +300,9 @@ app.get("/number", auth, async (req, res) => {
       message: "All input is required",
     });
   }
-
   var result = 0.5
-  while(result%1!=0){
+  const chance = Math.random()
+  while(!isValid(result, chance)){
     // console.log("START")
     var number = [];
     while (number.length < digit){
@@ -318,7 +330,6 @@ app.get("/number", auth, async (req, res) => {
       // console.log("_____________________")
     }
   }
-
   return res.status(200).json({
     number: number,
     operator: operator,
