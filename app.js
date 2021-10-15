@@ -269,3 +269,59 @@ app.put("/lose", auth, async (req, res) => {
   }
   return res.status(200).json();
 });
+
+// Get list of all number
+app.get("/number", auth, async (req, res) => {
+
+  if (req.user.role != "User") {
+    res.status(401).send({
+      reason: "Unauthorized",
+      message: "Only user can use this api",
+    });
+  }
+
+  const { digit } = req.body
+
+  if (!digit) {
+    return res.status(400).send({
+      reason: "BAD_REQUEST",
+      message: "All input is required",
+    });
+  }
+
+  var result = 0.5
+  while(result%1!=0){
+    // console.log("START")
+    var number = [];
+    while (number.length < digit){
+      var r = Math.floor(Math.random()*10); 
+      if(number.indexOf(r) === -1) number.push(r); // Check don't repeat number
+    }
+    var operator = [];
+    while (operator.length < digit - 1){
+      var r2 = Math.floor(Math.random()*4);
+      operator.push(r2);
+    }
+    result = number[0]
+    for(let i = 0; i<operator.length;i++){
+      // console.log("round: "+i)
+      // console.log("first number: " + result)
+      // console.log("operator: " + operator[i])
+      // console.log("second number: "+number[i+1])
+      switch(operator[i]) {
+        case 0: result+=number[i+1]; break;
+        case 1: result-=number[i+1]; break;
+        case 2: result=result*number[i+1]; break;
+        case 3: result=result/number[i+1]; break;
+      }
+      // console.log("result: " + result)
+      // console.log("_____________________")
+    }
+  }
+
+  return res.status(200).json({
+    number: number,
+    operator: operator,
+    result: result,
+  });
+});
