@@ -336,3 +336,7 @@ app.get("/number", auth, async (req, res) => {
     result: result,
   });
 });
+
+app.get("/", async (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
