@@ -8,7 +8,11 @@ const cors = require('cors');
 const { HASH_SALT } = process.env;
 const auth = require("./middleware/auth");
 const http = require("http").Server(app);
-const io = require('socket.io')(http);
+const io = require('socket.io')(http, {
+  cors: {
+    origin: '*',
+  }
+});
 
 const { API_PORT } = process.env;
 const port = process.env.PORT || API_PORT;
