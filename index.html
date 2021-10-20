@@ -1,47 +1,38 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-</head>
-
-<body>
+<html>
+  <head>
+    <title>Socket.IO Example</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.1.1/material.indigo-pink.min.css">
+    <script defer src="https://code.getmdl.io/1.1.1/material.min.js"></script>
+    <style>
+     .demo-list-icon {width: 100%;}
+     #messages li:nth-child(odd) { background: #eee; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      form { background: #eee; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 85%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+ 
+    </style>
+  </head>
+  <body>
+    <ul id="messages" class="demo-list-icon mdl-list"></ul>
+    <form action="">
+      <input id="m" autocomplete="off" />
+      <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Send</button>
+    </form>
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-      // const io = require('socket.io')
-      const socket = io()
-      socket.on("connect", function () {
-        document.getElementById("myId").innerHTML = `Id: ${socket.id}`;
-      });
-    
-      socket.on("updateSetting", function (setting) {
-    
-      });
-    
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script language="javascript">
+        var socket = io();
+        $('form').submit(function(){
+        socket.emit('chat message', $('#m').val());
+            $('#m').val('');
+        return false;
+        });
+        socket.on('chat message', function(msg){
+            $('#messages').append($('<li class="mdl-list__item"><i class="material-icons mdl-list__item-icon">person</i>').text(msg));
+         });
     </script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="js/main.js"></script>
-</body>
-<h1 id="myId">Game</h1>
-
-</body>
-
-</html> -->
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Document</title>
-</head>
-<body>
-  <h1 id="myId">Game</h1>
-	<script src="/socket.io/socket.io.js"></script>
-</body>
+  </body>
 </html>
