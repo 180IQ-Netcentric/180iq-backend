@@ -16,20 +16,20 @@ const port = process.env.PORT || API_PORT;
 app.use(express.json());
 app.use(cors())
 
-http.listen(port, function(){
+http.listen(port, function () {
   console.log(`listening on port ${port}`);
 });
 
 function isPrime(num) {
-  if(!isFinite(num)) return false
-  for(var i = 2; i < num; i++)
-    if(num % i === 0) return false;
+  if (!isFinite(num)) return false
+  for (var i = 2; i < num; i++)
+    if (num % i === 0) return false;
   return num > 1;
 }
 
-function isValid(num,chance){
-  if(chance> 0.67) return isPrime(num) && (num%1===0) && num > 20 && num < 90
-  return num%1===0
+function isValid(num, chance) {
+  if (chance > 0.67) return isPrime(num) && (num % 1 === 0) && num > 20 && num < 90
+  return num % 1 === 0
 }
 
 // Importing user context
@@ -307,29 +307,29 @@ app.get("/number", auth, async (req, res) => {
   }
   var result = 0.5
   const chance = Math.random()
-  while(!isValid(result, chance)){
+  while (!isValid(result, chance)) {
     // console.log("START")
     var number = [];
-    while (number.length < digit){
-      var r = Math.floor(Math.random()*10); 
-      if(number.indexOf(r) === -1) number.push(r); // Check don't repeat number
+    while (number.length < digit) {
+      var r = Math.floor(Math.random() * 10);
+      if (number.indexOf(r) === -1) number.push(r); // Check don't repeat number
     }
     var operator = [];
-    while (operator.length < digit - 1){
-      var r2 = Math.floor(Math.random()*4);
+    while (operator.length < digit - 1) {
+      var r2 = Math.floor(Math.random() * 4);
       operator.push(r2);
     }
     result = number[0]
-    for(let i = 0; i<operator.length;i++){
+    for (let i = 0; i < operator.length; i++) {
       // console.log("round: "+i)
       // console.log("first number: " + result)
       // console.log("operator: " + operator[i])
       // console.log("second number: "+number[i+1])
-      switch(operator[i]) {
-        case 0: result+=number[i+1]; break;
-        case 1: result-=number[i+1]; break;
-        case 2: result=result*number[i+1]; break;
-        case 3: result=result/number[i+1]; break;
+      switch (operator[i]) {
+        case 0: result += number[i + 1]; break;
+        case 1: result -= number[i + 1]; break;
+        case 2: result = result * number[i + 1]; break;
+        case 3: result = result / number[i + 1]; break;
       }
       // console.log("result: " + result)
       // console.log("_____________________")
@@ -343,18 +343,24 @@ app.get("/number", auth, async (req, res) => {
 });
 
 app.get("/", async (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+  res.sendFile(__dirname + '/index.html');
 });
- 
-io.on('connection', function(socket){
-    console.log('Connected!');  
-    
-    socket.on('disconnect', function(){
-          console.log('Someone Leave the Chat');
-        });
-    
-    socket.on('chat message', function(msg){
-         console.log('Message: ' + msg);
-         io.emit('chat message', msg);
-     });
+
+io.on("connection", function (socket) {
+  let setting = {
+    "digit": 5,
+    "round": 3,
+    "timeLimit": 90,
+    "isBasicMode": true,
+  }
+  console.log("Connected!");
+  io.emit("updateSetting", setting)
+
+  socket.on("updateSetting", function (setting) {
+    console.log("Setting is being updated.");
+    io.emit("updateSetting", setting)
+  });
+  socket.on("disconnect", function () {
+    console.log("Someone left the game");
+  });
 });
