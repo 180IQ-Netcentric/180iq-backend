@@ -346,24 +346,30 @@ app.get("/number", auth, async (req, res) => {
   });
 });
 
-app.get("/", async (req, res) => {
+// Socket
+
+app.get("/game", async (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
+let setting = {
+  "digit": 5,
+  "round": 3,
+  "timeLimit": 90,
+  "isBasicMode": true,
+}
+
 io.on("connection", function (socket) {
-  let setting = {
-    "digit": 5,
-    "round": 3,
-    "timeLimit": 90,
-    "isBasicMode": true,
-  }
   console.log("Connected!");
   io.emit("updateSetting", setting)
 
-  socket.on("updateSetting", function (setting) {
+  socket.on("updateSetting", function (newSetting) {
     console.log("Setting is being updated.");
+    setting = newSetting
     io.emit("updateSetting", setting)
+    console.log(setting)
   });
+
   socket.on("disconnect", function () {
     console.log("Someone left the game");
   });
