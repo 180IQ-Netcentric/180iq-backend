@@ -352,16 +352,89 @@ app.get("/game", async (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
-let setting = {
+let setting = { // default game setting
   "digit": 5,
   "round": 3,
   "timeLimit": 90,
   "isBasicMode": true,
 }
 
+let playerInfos = [{
+  "username": '',
+  "win": 0,
+  "loss": 0,
+  "score": 0,
+}]
+
+let gameInfo = {
+  "setting": setting,
+  "Player1": {
+    "username": '',
+    "score": 0,
+    "timeUsed": 0,
+  },
+  "Player2": {
+    "username": '',
+    "score": 0,
+    "timeUsed": 0,
+  },
+  "firstPlayer": '',
+  "currentRound": 1,
+  "questions": [{
+    "number": [],
+    "operator": [],
+  }
+
+  ]
+}
+
+function removeFromArray(username, players) {
+  for (var i = 0; i < players.length; i++) {
+    if (players[i] === username) {
+      players.splice(i, 1);
+      return players
+    }
+  }
+  return players
+}
+
+function generateQuestions(digit, round) {
+  var result = 0.5
+  const chance = Math.random()
+  while (!isValid(result, chance)) {
+    var number = [];
+    while (number.length < digit) {
+      var r = Math.floor(Math.random() * 10);
+      if (number.indexOf(r) === -1) number.push(r);
+    }
+    var operator = [];
+    while (operator.length < digit - 1) {
+      var r2 = Math.floor(Math.random() * 4);
+      operator.push(r2);
+    }
+    result = number[0]
+    for (let i = 0; i < operator.length; i++) {
+      switch (operator[i]) {
+        case 0: result += number[i + 1]; break;
+        case 1: result -= number[i + 1]; break;
+        case 2: result = result * number[i + 1]; break;
+        case 3: result = result / number[i + 1]; break;
+      }
+      return [number, operator]
+    }
+  }
+}
+
 io.on("connection", function (socket) {
-  console.log("Connected!");
-  io.emit("updateSetting", setting)
+  console.log("Initial Connection Successful!");
+  io.emit("updateSetting", setting) // show setting
+
+  // socket.on("joinRoom", function (username) {
+  //   console.log(`${username} Connected!"`);
+  //   players.push(username); // updates player list
+  //   console.log(players)
+  //   io.emit("updatePlayerList", players)  // send back to client
+  // });
 
   socket.on("updateSetting", function (newSetting) {
     console.log("Setting is being updated.");
@@ -370,7 +443,32 @@ io.on("connection", function (socket) {
     console.log(setting)
   });
 
-  socket.on("disconnect", function () {
-    console.log("Someone left the game");
+  socket.on("gamePlay", function (gameInfo) {
+    console.log("Initialize gameplay")
+    io.emit("playerStartGame")
+    gameInfo.player1.username = playerInfos[0].username
+    gameInfo.player2.username = playerInfos[1].username
+    gameInfo.questions = generateQuestions(setting.digit, setting.round)
+    gameInfo.setting = setting
+    gameInfo.currentRound = 1
+    const random = Math.random()
+    if (random > 0.5) {
+      gameInfo.firstPlayer = gameInfo.player1.username
+    } else {
+      gameInfo.firstPlayer = gameInfo.player2.username
+    }
+    io.emit("startRound")
+  });
+
+  socket.on("gamePause", function () {
+    console.log("Initialize gameplay")
+
+  });
+
+  socket.on("disconnect", function (username) {
+    console.log(`${username} left the game`);
+    players = removeFromArray(username, players)
+    io.emit("updatePlayerList", players)
+    console.log(players)
   });
 });

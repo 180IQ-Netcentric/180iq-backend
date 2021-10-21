@@ -1,4 +1,44 @@
-<!-- <!DOCTYPE html>
+<!-- <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var socket = io()
+    socket.on("connect", function (value) {
+      document.getElementById("myId").innerHTML = `Id: ${socket.id + value}`; 
+
+    });
+    function updateSetting(setting) {
+      const newSetting = setting;
+    }
+  </script>
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test socket</title>
+</head>
+
+<body>
+  <h1 id="myId">Setting: </h1>
+  <form>
+    <label for="digit">Digit: </label>
+    <input type="text" id="digit" name="digit"><br><br>
+    <label for="round">Round: </label>
+    <input type="text" id="round" name="round"><br><br>
+    <label for="timeLimit">Time Limit: </label>
+    <input type="text" id="timeLimit" name="timeLimit"><br><br>
+    <input type="submit" value="Update setting">
+  </form>
+
+  <button type="reset">Reset</button>
+</body>
+
+</html> -->
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -7,37 +47,6 @@
   <title>Document</title>
 </head>
 <body>
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-      // const io = require('socket.io')
-      const socket = io()
-      socket.on("connect", function () {
-        document.getElementById("myId").innerHTML = `Id: ${socket.id}`;
-      });
-    
-      socket.on("updateSetting", function (setting) {
-    
-      });
-    
-    </script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="js/main.js"></script>
+  
 </body>
-<h1 id="myId">Game</h1>
-</body>
-</html> -->
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Document</title>
-</head>
-<body>
-  <h1 id="myId">Game</h1>
-	<script src="/socket.io/socket.io.js"></script>
-</body>
-</html> 
+</html>
