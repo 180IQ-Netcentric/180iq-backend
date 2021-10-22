@@ -24,18 +24,6 @@ http.listen(port, function () {
   console.log(`listening on port ${port}`);
 });
 
-function isPrime(num) {
-  if (!isFinite(num)) return false
-  for (var i = 2; i < num; i++)
-    if (num % i === 0) return false;
-  return num > 1;
-}
-
-function isValid(num, chance) {
-  if (chance > 0.67) return isPrime(num) && (num % 1 === 0) && num > 20 && num < 90
-  return num % 1 === 0
-}
-
 // Importing user context
 const User = require("./model/user");
 
@@ -291,8 +279,8 @@ app.put("/lose", auth, async (req, res) => {
   return res.status(200).json();
 });
 
-// Get list of all number
-app.get("/number", auth, async (req, res) => {
+// FOR TEST ONLY !!!
+app.get("/testGame", auth, async (req, res) => {
 
   if (req.user.role != "User") {
     res.status(401).send({
@@ -301,108 +289,113 @@ app.get("/number", auth, async (req, res) => {
     });
   }
 
-  const { digit } = req.body
+  const { digit, round } = req.body
 
-  if (!digit) {
+  if (!(digit && round)) {
     return res.status(400).send({
       reason: "BAD_REQUEST",
       message: "All input is required",
     });
   }
-  var result = 0.5
-  const chance = Math.random()
-  while (!isValid(result, chance)) {
-    // console.log("START")
-    var number = [];
-    while (number.length < digit) {
-      var r = Math.floor(Math.random() * 10);
-      if (number.indexOf(r) === -1) number.push(r); // Check don't repeat number
-    }
-    var operator = [];
-    while (operator.length < digit - 1) {
-      var r2 = Math.floor(Math.random() * 4);
-      operator.push(r2);
-    }
-    result = number[0]
-    for (let i = 0; i < operator.length; i++) {
-      // console.log("round: "+i)
-      // console.log("first number: " + result)
-      // console.log("operator: " + operator[i])
-      // console.log("second number: "+number[i+1])
-      switch (operator[i]) {
-        case 0: result += number[i + 1]; break;
-        case 1: result -= number[i + 1]; break;
-        case 2: result = result * number[i + 1]; break;
-        case 3: result = result / number[i + 1]; break;
+  const questions = []
+  for (let i = 0; i < round; i++) {
+    var result = 0.5
+    const chance = Math.random()
+    while (!isValid(result, chance)) {
+      // console.log("START")
+      var number = [];
+      while (number.length < digit) {
+        var r = Math.floor(Math.random() * 10);
+        if (number.indexOf(r) === -1) number.push(r); // Check don't repeat number
       }
-      // console.log("result: " + result)
-      // console.log("_____________________")
+      var operator = [];
+      while (operator.length < digit - 1) {
+        var r2 = Math.floor(Math.random() * 4);
+        operator.push(r2);
+      }
+      result = number[0]
+      for (let j = 0; j < operator.length; j++) {
+        // console.log("round: "+j)
+        // console.log("first number: " + result)
+        // console.log("operator: " + operator[j])
+        // console.log("second number: "+number[j+1])
+        switch (operator[j]) {
+          case 0: result += number[j + 1]; break;
+          case 1: result -= number[j + 1]; break;
+          case 2: result = result * number[j + 1]; break;
+          case 3: result = result / number[j + 1]; break;
+        }
+        // console.log("result: " + result)
+        // console.log("_____________________")
+      }
     }
+    question = {
+      number: number,
+      operator: operator,
+      result: result,
+    }
+    questions.push(question)
   }
   return res.status(200).json({
-    number: number,
-    operator: operator,
-    result: result,
+    questions: questions,
   });
 });
 
 // Socket
 
-app.get("/game", async (req, res) => {
-  res.sendFile(__dirname + '/index.html');
-});
-
 let setting = { // default game setting
-  "digit": 5,
-  "round": 3,
-  "timeLimit": 90,
-  "isBasicMode": true,
+  digit: 5,
+  round: 3,
+  timeLimit: 90,
+  isClassicMode: true,
 }
 
-let playerInfos = [{
-  "username": '',
-  "win": 0,
-  "loss": 0,
-  "score": 0,
-}]
+const playerInfos = []
 
-let gameInfo = {
-  "setting": setting,
-  "player1": {
-    "username": '',
-    "score": 0,
-    "timeUsed": 0,
+const gameInfo = {
+  setting: setting,
+  player1: {
+    username: null,
+    score: 0,
+    timeUsed: null,
   },
-  "player2": {
-    "username": '',
-    "score": 0,
-    "timeUsed": 0,
+  player2: {
+    username: null,
+    score: 0,
+    timeUsed: null,
   },
-  "firstPlayer": '',
-  "currentRound": 1,
-  "questions": [{
-    "number": [],
-    "operator": [],
-  }
-
-  ]
+  firstPlayer: null,
+  currentRound: null,
+  questions: null
 }
 
-function removeFromArray(username, players) {
-  for (var i = 0; i < players.length; i++) {
-    if (players[i] === username) {
-      players.splice(i, 1);
-      return players
+function removeFromArray(username, playerInfos) {
+  for (var i = 0; i < playerInfos.length; i++) {
+    if (playerInfos[i].username === username) {
+      playerInfos.splice(i, 1);
+      return playerInfos
     }
   }
-  return players
+  return playerInfos
+}
+
+function isPrime(num) {
+  if (!isFinite(num)) return false
+  for (var i = 2; i < num; i++)
+    if (num % i === 0) return false;
+  return num > 1;
+}
+
+function isValid(num, chance) {
+  if (chance > 0.67) return isPrime(num) && (num % 1 === 0) && num > 20 && num < 90
+  return num % 1 === 0
 }
 
 function generateQuestions(digit, round) {
-  var allQuestions = []
+  const questions = []
   for (i = 0; i < round; i++) {
     var result = 0.5
-    const chance = Math.random()
+    var chance = Math.random()
     while (!isValid(result, chance)) {
       var number = [];
       while (number.length < digit) {
@@ -424,26 +417,23 @@ function generateQuestions(digit, round) {
         }
       }
     }
-    allQuestions.push[number, operator]
+    question = {
+      number: number,
+      operator: operator,
+      result: result,
+    }
+    questions.push(question)
   }
-  return allQuestions
-}
-
-function assignWinner(winner) { // update gameInfo once game ends
-  if (gameInfo.player1.username === winner) {
-    gameInfo.player1.score++
-  } else {
-    gameInfo.player2.score++
-  }
+  return questions
 }
 
 io.on("connection", function (socket) {
   console.log("Initial Connection Successful!");
   io.emit("updateSetting", setting) // show setting
 
-  socket.on("joinRoom", function (username) {
-    console.log(`${username} Connected!"`);
-    playerInfos.push(username); // updates player list
+  socket.on("joinRoom", function (userInfo) {
+    console.log(`${userInfo.username} Connected!"`);
+    playerInfos.push(userInfo); // updates player list
     console.log(playerInfos)
     io.emit("updatePlayerList", playerInfos)  // send back to client
   });
@@ -455,9 +445,8 @@ io.on("connection", function (socket) {
     console.log(setting)
   });
 
-  socket.on("gamePlay", function () {
+  socket.on("playerStartGame", function () {
     console.log("Initialize gameplay")
-    io.emit("playerStartGame")
     gameInfo.player1.username = playerInfos[0].username
     gameInfo.player2.username = playerInfos[1].username
     gameInfo.questions = generateQuestions(setting.digit, setting.round)
@@ -469,42 +458,68 @@ io.on("connection", function (socket) {
     } else {
       gameInfo.firstPlayer = gameInfo.player2.username
     }
-    io.emit("startRound")
+    io.emit("startRound", gameInfo)
   });
 
-  socket.on("nextTurn", function (username, timeUsed) {
-    if (gameInfo.player1.username === username) {
-      gameInfo.player1.timeUsed = timeUsed
+  socket.on("nextTurn", function (playerInfo) {
+    if (gameInfo.player1.username === playerInfo.username) {
+      gameInfo.player1.timeUsed = playerInfo.timeUsed
     } else {
-      gameInfo.player2.timeUsed = timeUsed
+      gameInfo.player2.timeUsed = playerInfo.timeUsed
     }
-    io.emit("startNextTurn", null)
+    io.emit("startNextTurn")
   })
 
-  socket.on("endRound", function (username, timeUsed) {
-    if (gameInfo.player1.username === username) {
-      gameInfo.player1.timeUsed = timeUsed
-    } else {
-      gameInfo.player2.timeUsed = timeUsed
+  socket.on("endRound", function (playerInfo) {
+    winnerUsername = null
+    if (settting.isClassicMode) { //classic mode
+      if (gameInfo.player1.username === playerInfo.username) {
+        gameInfo.player1.timeUsed = playerInfo.timeUsed
+      } else {
+        gameInfo.player2.timeUsed = playerInfo.timeUsed
+      }
+      timeUsed1 = gameInfo.player1.timeUsed
+      timeUsed2 = gameInfo.player2.timeUsed
+      if (timeUsed1 < timeUsed2) {
+        gameInfo.player1.score++
+        winnerUsername = gameInfo.player1.username
+        gameInfo.firstPlayer = winnerUsername
+      } else if (timeUsed2 < timeUsed1) {
+        gameInfo.player2.score++
+        winnerUsername = gameInfo.player2.username
+        gameInfo.firstPlayer = winnerUsername
+      } else {
+        gameInfo.firstPlayer = playerInfo.username
+      }
+    } else {  //vs mode
+      if (playerInfo.timeUsed === setting.timeLimit) {
+        gameInfo.firstPlayer = playerInfo.username
+      } else {
+        if (gameInfo.player1.username === playerInfo.username) {
+          gameInfo.player1.score++
+        } else {
+          gameInfo.player2.score++
+        }
+        winnerUsername = playerInfo.username
+        gameInfo.firstPlayer = winnerUsername
+      }
     }
-    // Check and update winner function
-    if (setting.isBasicMode) { // classic
-      assignWinner(username)
-      io.emit("announceWinner", username)
-    } else { // vs
+
+    if(gameInfo.currentRound === setting.round){
       io.emit("endGame", gameInfo)
+    }else{
+      io.emit("announceWinner", winnerUsername)
     }
   })
 
-  socket.on("nextRound", function (winnerUsername) {
+  socket.on("nextRound", function () {
     gameInfo.currentRound++
-    gameInfo.firstPlayer = winnerUsername
     io.emit("startRound", gameInfo)
   })
 
-  socket.on("disconnect", function (username) {
-    console.log(`${username} left the game`);
-    playerInfos = removeFromArray(username, playerInfos)
+  socket.on("disconnect", function (userInfo) {
+    console.log(`${userInfo.username} left the game`);
+    playerInfos = removeFromArray(userInfo.username, playerInfos)
     io.emit("updatePlayerList", playerInfos)
     console.log(playerInfos)
   });
