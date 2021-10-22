@@ -429,6 +429,14 @@ function generateQuestions(digit, round) {
   return allQuestions
 }
 
+function assignWinner(winner) { // update gameInfo once game ends
+  if (gameInfo.player1.username === winner) {
+    gameInfo.player1.score++
+  } else {
+    gameInfo.player2.score++
+  }
+}
+
 io.on("connection", function (socket) {
   console.log("Initial Connection Successful!");
   io.emit("updateSetting", setting) // show setting
@@ -479,13 +487,20 @@ io.on("connection", function (socket) {
     } else {
       gameInfo.player2.timeUsed = timeUsed
     }
-
+    // Check and update winner function
+    if (setting.isBasicMode) { // classic
+      assignWinner(username)
+      io.emit("announceWinner", username)
+    } else { // vs
+      io.emit("endGame", gameInfo)
+    }
   })
 
-  socket.on("gamePause", function () {
-    console.log("Initialize gameplay")
-
-  });
+  socket.on("nextRound", function (winnerUsername) {
+    gameInfo.currentRound++
+    gameInfo.firstPlayer = winnerUsername
+    io.emit("startRound", gameInfo)
+  })
 
   socket.on("disconnect", function (username) {
     console.log(`${username} left the game`);
