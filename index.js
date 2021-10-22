@@ -350,7 +350,7 @@ let setting = { // default game setting
   isClassicMode: true,
 }
 
-const playerInfos = []
+let playerInfos = []
 
 const gameInfo = {
   setting: setting,
