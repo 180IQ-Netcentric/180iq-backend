@@ -368,12 +368,12 @@ let playerInfos = [{
 
 let gameInfo = {
   "setting": setting,
-  "Player1": {
+  "player1": {
     "username": '',
     "score": 0,
     "timeUsed": 0,
   },
-  "Player2": {
+  "player2": {
     "username": '',
     "score": 0,
     "timeUsed": 0,
@@ -399,42 +399,46 @@ function removeFromArray(username, players) {
 }
 
 function generateQuestions(digit, round) {
-  var result = 0.5
-  const chance = Math.random()
-  while (!isValid(result, chance)) {
-    var number = [];
-    while (number.length < digit) {
-      var r = Math.floor(Math.random() * 10);
-      if (number.indexOf(r) === -1) number.push(r);
-    }
-    var operator = [];
-    while (operator.length < digit - 1) {
-      var r2 = Math.floor(Math.random() * 4);
-      operator.push(r2);
-    }
-    result = number[0]
-    for (let i = 0; i < operator.length; i++) {
-      switch (operator[i]) {
-        case 0: result += number[i + 1]; break;
-        case 1: result -= number[i + 1]; break;
-        case 2: result = result * number[i + 1]; break;
-        case 3: result = result / number[i + 1]; break;
+  var allQuestions = []
+  for (i = 0; i < round; i++) {
+    var result = 0.5
+    const chance = Math.random()
+    while (!isValid(result, chance)) {
+      var number = [];
+      while (number.length < digit) {
+        var r = Math.floor(Math.random() * 10);
+        if (number.indexOf(r) === -1) number.push(r);
       }
-      return [number, operator]
+      var operator = [];
+      while (operator.length < digit - 1) {
+        var r2 = Math.floor(Math.random() * 4);
+        operator.push(r2);
+      }
+      result = number[0]
+      for (let i = 0; i < operator.length; i++) {
+        switch (operator[i]) {
+          case 0: result += number[i + 1]; break;
+          case 1: result -= number[i + 1]; break;
+          case 2: result = result * number[i + 1]; break;
+          case 3: result = result / number[i + 1]; break;
+        }
+      }
     }
+    allQuestions.push[number, operator]
   }
+  return allQuestions
 }
 
 io.on("connection", function (socket) {
   console.log("Initial Connection Successful!");
   io.emit("updateSetting", setting) // show setting
 
-  // socket.on("joinRoom", function (username) {
-  //   console.log(`${username} Connected!"`);
-  //   players.push(username); // updates player list
-  //   console.log(players)
-  //   io.emit("updatePlayerList", players)  // send back to client
-  // });
+  socket.on("joinRoom", function (username) {
+    console.log(`${username} Connected!"`);
+    playerInfos.push(username); // updates player list
+    console.log(playerInfos)
+    io.emit("updatePlayerList", playerInfos)  // send back to client
+  });
 
   socket.on("updateSetting", function (newSetting) {
     console.log("Setting is being updated.");
@@ -443,7 +447,7 @@ io.on("connection", function (socket) {
     console.log(setting)
   });
 
-  socket.on("gamePlay", function (gameInfo) {
+  socket.on("gamePlay", function () {
     console.log("Initialize gameplay")
     io.emit("playerStartGame")
     gameInfo.player1.username = playerInfos[0].username
@@ -460,6 +464,24 @@ io.on("connection", function (socket) {
     io.emit("startRound")
   });
 
+  socket.on("nextTurn", function (username, timeUsed) {
+    if (gameInfo.player1.username === username) {
+      gameInfo.player1.timeUsed = timeUsed
+    } else {
+      gameInfo.player2.timeUsed = timeUsed
+    }
+    io.emit("startNextTurn", null)
+  })
+
+  socket.on("endRound", function (username, timeUsed) {
+    if (gameInfo.player1.username === username) {
+      gameInfo.player1.timeUsed = timeUsed
+    } else {
+      gameInfo.player2.timeUsed = timeUsed
+    }
+
+  })
+
   socket.on("gamePause", function () {
     console.log("Initialize gameplay")
 
@@ -467,8 +489,8 @@ io.on("connection", function (socket) {
 
   socket.on("disconnect", function (username) {
     console.log(`${username} left the game`);
-    players = removeFromArray(username, players)
-    io.emit("updatePlayerList", players)
-    console.log(players)
+    playerInfos = removeFromArray(username, playerInfos)
+    io.emit("updatePlayerList", playerInfos)
+    console.log(playerInfos)
   });
 });
