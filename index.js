@@ -369,9 +369,9 @@ const gameInfo = {
   questions: null
 }
 
-function removeFromArray(username, playerInfos) {
+function removeFromArray(id, playerInfos) {
   for (var i = 0; i < playerInfos.length; i++) {
-    if (playerInfos[i].username === username) {
+    if (playerInfos[i].id === id) {
       playerInfos.splice(i, 1);
       return playerInfos
     }
@@ -431,9 +431,9 @@ io.on("connection", function (socket) {
   console.log("Initial Connection Successful!");
   io.emit("updateSetting", setting) // show setting
 
-  socket.on("joinRoom", function (userInfo) {
-    console.log(`${userInfo.username} Connected!"`);
-    playerInfos.push(userInfo); // updates player list
+  socket.on("joinRoom", function (playerInfo) {
+    console.log(`${playerInfo.username} Connected!"`);
+    playerInfos.push(playerInfo); // updates player list
     console.log(playerInfos)
     io.emit("updatePlayerList", playerInfos)  // send back to client
   });
@@ -517,9 +517,9 @@ io.on("connection", function (socket) {
     io.emit("startRound", gameInfo)
   })
 
-  socket.on("disconnect", function (userInfo) {
-    console.log(`${userInfo.username} left the game`);
-    playerInfos = removeFromArray(userInfo.username, playerInfos)
+  socket.on("disconnect", function () {
+    console.log(`${this.id} left the game`);
+    playerInfos = removeFromArray(this.id, playerInfos)
     io.emit("updatePlayerList", playerInfos)
     console.log(playerInfos)
   });
