@@ -352,7 +352,7 @@ let setting = { // default game setting
 
 let playerInfos = []
 
-const gameInfo = {
+let gameInfo = {
   setting: setting,
   player1: {
     username: null,
@@ -433,7 +433,13 @@ io.on("connection", function (socket) {
 
   socket.on("joinRoom", function (playerInfo) {
     console.log(`${playerInfo.username} Connected!"`);
-    playerInfos.push(playerInfo); // updates player list
+    isAlreadyJoin = false;
+    for(let i = 0;i<playerInfos.length;i++){
+      if(playerInfos[i].id===this.id){
+        isAlreadyJoin = true
+      }
+    }
+    if(!isAlreadyJoin) playerInfos.push(playerInfo); // updates player list
     console.log(playerInfos)
     io.emit("updatePlayerList", playerInfos)  // send back to client
   });
@@ -515,6 +521,31 @@ io.on("connection", function (socket) {
   socket.on("nextRound", function () {
     gameInfo.currentRound++
     io.emit("startRound", gameInfo)
+  })
+
+  //Server side
+  socket.on("showAllPlayers", function () {
+    io.emit("showAllPlayers", playerInfos)
+  })
+
+  socket.on("resetByAdmin", function () {
+    gameInfo = {
+      setting: setting,
+      player1: {
+        username: null,
+        score: 0,
+        timeUsed: null,
+      },
+      player2: {
+        username: null,
+        score: 0,
+        timeUsed: null,
+      },
+      firstPlayer: null,
+      currentRound: null,
+      questions: null
+    }
+    io.emit("resetByAdmin", setting)
   })
 
   socket.on("disconnect", function () {
