@@ -432,7 +432,7 @@ io.on("connection", function (socket) {
   io.emit("updateSetting", setting) // show setting
 
   socket.on("joinRoom", function (playerInfo) {
-    console.log(`${playerInfo.username} Connected!"`);
+    console.log(`${JSON.stringify(playerInfo)} Connected!"`);
     isAlreadyJoin = false;
     for(let i = 0;i<playerInfos.length;i++){
       if(playerInfos[i].id===this.id){
@@ -473,12 +473,12 @@ io.on("connection", function (socket) {
     } else {
       gameInfo.player2.timeUsed = playerInfo.timeUsed
     }
-    io.emit("startNextTurn")
+    io.emit("startNextTurn", gameInfo)
   })
 
   socket.on("endRound", function (playerInfo) {
     winnerUsername = null
-    if (settting.isClassicMode) { //classic mode
+    if (setting.isClassicMode) { //classic mode
       if (gameInfo.player1.username === playerInfo.username) {
         gameInfo.player1.timeUsed = playerInfo.timeUsed
       } else {
@@ -514,7 +514,7 @@ io.on("connection", function (socket) {
     if(gameInfo.currentRound === setting.round){
       io.emit("endGame", gameInfo)
     }else{
-      io.emit("announceWinner", winnerUsername)
+      io.emit("announceWinner", {gameInfo, winnerUsername})
     }
   })
 
@@ -547,6 +547,13 @@ io.on("connection", function (socket) {
     }
     io.emit("resetByAdmin", setting)
   })
+  
+  socket.on("disconnectUser", function () {
+    console.log(`${this.id} left the game`);
+    playerInfos = removeFromArray(this.id, playerInfos)
+    io.emit("updatePlayerList", playerInfos)
+    console.log(playerInfos)
+  });
 
   socket.on("disconnect", function () {
     console.log(`${this.id} left the game`);
