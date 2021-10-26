@@ -369,6 +369,17 @@ let gameInfo = {
   questions: null
 }
 
+function shuffle(array) {
+  let currentIndex = array.length,  randomIndex;
+  while (currentIndex != 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]];
+  }
+  return array;
+}
+
 function removeFromArray(id, playerInfos) {
   for (var i = 0; i < playerInfos.length; i++) {
     if (playerInfos[i].id === id) {
@@ -417,10 +428,12 @@ function generateQuestions(digit, round) {
         }
       }
     }
+    const numberShuffle = shuffle([...number]);
     question = {
       number: number,
       operator: operator,
       result: result,
+      numberShuffle: numberShuffle,
     }
     questions.push(question)
   }
@@ -437,6 +450,7 @@ io.on("connection", function (socket) {
     for(let i = 0;i<playerInfos.length;i++){
       if(playerInfos[i].id===this.id){
         isAlreadyJoin = true
+        playerInfos[i] = playerInfo
       }
     }
     if(!isAlreadyJoin) playerInfos.push(playerInfo); // updates player list
@@ -452,6 +466,22 @@ io.on("connection", function (socket) {
   });
 
   socket.on("playerStartGame", function () {
+    gameInfo = {
+      setting: setting,
+      player1: {
+        username: null,
+        score: 0,
+        timeUsed: null,
+      },
+      player2: {
+        username: null,
+        score: 0,
+        timeUsed: null,
+      },
+      firstPlayer: null,
+      currentRound: null,
+      questions: null
+    }
     console.log("Initialize gameplay")
     gameInfo.player1.username = playerInfos[0].username
     gameInfo.player2.username = playerInfos[1].username
@@ -477,6 +507,7 @@ io.on("connection", function (socket) {
   })
 
   socket.on("endRound", function (playerInfo) {
+    console.log('receivedEndRound')
     winnerUsername = null
     if (setting.isClassicMode) { //classic mode
       if (gameInfo.player1.username === playerInfo.username) {
@@ -513,6 +544,24 @@ io.on("connection", function (socket) {
 
     if(gameInfo.currentRound === setting.round){
       io.emit("endGame", gameInfo)
+      console.log("End game")
+      gameInfo = {
+        setting: setting,
+        player1: {
+          username: null,
+          score: 0,
+          timeUsed: null,
+        },
+        player2: {
+          username: null,
+          score: 0,
+          timeUsed: null,
+        },
+        firstPlayer: null,
+        currentRound: null,
+        questions: null
+      }
+      console.log(gameInfo)
     }else{
       io.emit("announceWinner", {gameInfo, winnerUsername})
     }
