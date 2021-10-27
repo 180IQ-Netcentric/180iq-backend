@@ -154,6 +154,19 @@ app.post("/login", async (req, res) => {
   // Our register logic ends here
 });
 
+
+//For admin state
+app.get("/adminState", auth, async (req, res) =>{
+  if (req.user.role != "Admin") {
+    res.status(401).send({
+      reason: "Unauthorized",
+      message: "Only admin can use this api",
+    });
+  }
+  return res.status(200).json({
+    isUser: false
+  })
+})
 // Scoreboard
 app.get("/scoreboard", auth, async (req, res) => {
 
