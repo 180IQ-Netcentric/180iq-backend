@@ -594,7 +594,7 @@ io.on("connection", function (socket) {
       currentRound: null,
       questions: null
     }
-    io.emit("resetByAdmin", setting)
+    io.emit("onResetByAdmin", setting)
   })
   
   socket.on("disconnectUser", function () {
