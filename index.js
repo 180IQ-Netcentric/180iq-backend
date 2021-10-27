@@ -574,7 +574,7 @@ io.on("connection", function (socket) {
 
   //Server side
   socket.on("showAllPlayers", function () {
-    io.emit("showAllPlayers", playerInfos)
+    io.emit("onShowAllPlayers", playerInfos)
   })
 
   socket.on("resetByAdmin", function () {
