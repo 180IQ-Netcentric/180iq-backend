@@ -382,6 +382,8 @@ let gameInfo = {
   questions: null
 }
 
+let receivedVSModeRoundWinner = false
+
 function shuffle(array) {
   let currentIndex = array.length,  randomIndex;
   while (currentIndex != 0) {
@@ -479,6 +481,7 @@ io.on("connection", function (socket) {
   });
 
   socket.on("playerStartGame", function () {
+    receivedVSModeRoundWinner = false
     gameInfo = {
       setting: setting,
       player1: {
@@ -521,6 +524,8 @@ io.on("connection", function (socket) {
 
   socket.on("endRound", function (playerInfo) {
     console.log('receivedEndRound')
+    if (receivedVSModeRoundWinner) return
+    receivedVSModeRoundWinner = true
     winnerUsername = null
     if (setting.isClassicMode) { //classic mode
       if (gameInfo.player1.username === playerInfo.username) {
@@ -581,6 +586,7 @@ io.on("connection", function (socket) {
   })
 
   socket.on("nextRound", function () {
+    receivedVSModeRoundWinner = false
     gameInfo.currentRound++
     io.emit("startRound", gameInfo)
   })
