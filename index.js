@@ -524,8 +524,10 @@ io.on("connection", function (socket) {
 
   socket.on("endRound", function (playerInfo) {
     console.log('receivedEndRound')
-    if (receivedVSModeRoundWinner) return
-    receivedVSModeRoundWinner = true
+    if (!setting.isClassicMode) {
+      if (receivedVSModeRoundWinner) return
+      receivedVSModeRoundWinner = true
+    }
     winnerUsername = null
     if (setting.isClassicMode) { //classic mode
       if (gameInfo.player1.username === playerInfo.username) {
