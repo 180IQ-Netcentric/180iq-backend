@@ -593,6 +593,11 @@ io.on("connection", function (socket) {
     io.emit("startRound", gameInfo)
   })
 
+  socket.on("chatMessage", function ({username, message}) {
+    console.log(username + ' sent ' + message)
+    socket.broadcast.emit("sendChatMessage", { username, message })
+  })
+
   //Server side
   socket.on("showAllPlayers", function () {
     io.emit("onShowAllPlayers", playerInfos)
