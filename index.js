@@ -604,6 +604,13 @@ io.on("connection", function (socket) {
   })
 
   socket.on("resetByAdmin", function () {
+    setting = { // default game setting
+      digit: 5,
+      round: 3,
+      timeLimit: 90,
+      isClassicMode: true,
+    }
+
     gameInfo = {
       setting: setting,
       player1: {
